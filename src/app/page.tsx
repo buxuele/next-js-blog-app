@@ -1,7 +1,10 @@
-import { prisma } from '@/lib/prisma';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { PostCard } from '@/components/post-card';
+import { getPostsWithCache } from '@/lib/queries';
+
+// 启用 ISR，每30秒重新验证首页
+export const revalidate = 30;
 
 async function getPosts() {
   try {
@@ -13,108 +16,159 @@ async function getPosts() {
       console.warn(
         'Database not configured. Please set up your Neon database URL in .env file.'
       );
-      return [];
+      return { posts: [], total: 0 };
     }
 
-    const posts = await prisma.post.findMany({
-      where: {
-        published: true,
-      },
-      include: {
-        category: true,
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-      },
-      orderBy: {
-        publishedAt: 'desc',
-      },
-      take: 10,
-    });
-
-    return posts;
+    const result = await getPostsWithCache(1, 10);
+    return result;
   } catch (error) {
     console.error('Error fetching posts:', error);
-    return [];
+    return { posts: [], total: 0 };
   }
 }
 
 export default async function HomePage() {
-  const posts = await getPosts();
+  const result = await getPosts();
+  const posts = result.posts || [];
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-4">欢迎来到我的博客</h1>
-            <p className="text-gray-600 text-lg">
-              分享技术见解、生活感悟和学习心得
-            </p>
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <h1 className="text-5xl font-bold mb-6 text-gray-900 leading-tight">
+                欢迎来到我的博客
+              </h1>
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                分享技术见解、生活感悟和学习心得
+              </p>
+              <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    />
+                  </svg>
+                  <span>{posts.length} 篇文章</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                    />
+                  </svg>
+                  <span>技术 · 生活 · 学习</span>
+                </div>
+              </div>
+            </div>
           </div>
+        </section>
 
-          <div className="space-y-8">
-            {posts.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-2">
-                    🚀 欢迎使用博客应用！
-                  </h3>
-                  <p className="text-blue-700 mb-4">
-                    要开始使用，请先配置您的 Neon 数据库连接。
-                  </p>
-                  <div className="text-left text-sm text-blue-600 space-y-2">
-                    <p>
-                      1. 在{' '}
-                      <a
-                        href="https://neon.tech"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline"
+        {/* Posts Section */}
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              {posts.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="bg-white border border-blue-200 rounded-xl p-8 mb-8 shadow-sm">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg
+                        className="w-8 h-8 text-blue-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                       >
-                        Neon
-                      </a>{' '}
-                      创建数据库
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                      🚀 欢迎使用博客应用！
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      数据库已配置完成，现在可以开始创建内容了。
                     </p>
-                    <p>
-                      2. 更新{' '}
-                      <code className="bg-blue-100 px-1 rounded">.env</code>{' '}
-                      文件中的{' '}
-                      <code className="bg-blue-100 px-1 rounded">
-                        DATABASE_URL
-                      </code>
-                    </p>
-                    <p>
-                      3. 运行{' '}
-                      <code className="bg-blue-100 px-1 rounded">
-                        npm run db:push
-                      </code>{' '}
-                      初始化数据库
-                    </p>
-                    <p>
-                      4. 运行{' '}
-                      <code className="bg-blue-100 px-1 rounded">
-                        npm run db:seed
-                      </code>{' '}
-                      添加示例数据
+                    <div className="bg-gray-50 rounded-lg p-4 text-left text-sm text-gray-600 space-y-2 mb-6">
+                      <p className="font-medium text-gray-900 mb-2">
+                        快速开始：
+                      </p>
+                      <p>
+                        1. 访问{' '}
+                        <a
+                          href="/admin"
+                          className="text-blue-600 hover:underline"
+                        >
+                          /admin
+                        </a>{' '}
+                        管理后台
+                      </p>
+                      <p>2. 创建分类和标签</p>
+                      <p>3. 发布你的第一篇文章</p>
+                    </div>
+                    <a
+                      href="/admin"
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      前往管理后台
+                      <svg
+                        className="w-4 h-4 ml-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      最新文章
+                    </h2>
+                    <p className="text-gray-600">
+                      探索最新的技术见解和生活感悟
                     </p>
                   </div>
-                  <p className="text-blue-700 mt-4">
-                    详细说明请查看{' '}
-                    <code className="bg-blue-100 px-1 rounded">SETUP.md</code>{' '}
-                    文件。
-                  </p>
-                </div>
-                <p className="text-gray-500 text-lg">暂无文章发布</p>
-              </div>
-            ) : (
-              posts.map((post) => <PostCard key={post.id} post={post} />)
-            )}
+                  <div className="space-y-8">
+                    {posts.map((post) => (
+                      <PostCard key={post.id} post={post} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        </section>
       </main>
       <Footer />
     </div>
