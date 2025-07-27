@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { generateMetadata } from '@/lib/seo';
-import { ToastProvider } from '@/components/ui/toast';
+import { Toaster } from 'sonner';
 import { ErrorBoundary } from '@/components/error-boundary';
 
 export const metadata: Metadata = generateMetadata({
@@ -18,9 +18,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
-      <body className="antialiased">
+      <body className="antialiased bg-amber-50 min-h-screen">
         <ErrorBoundary>
-          <ToastProvider>{children}</ToastProvider>
+          {children}
+          <Toaster
+            position="top-right"
+            richColors
+            closeButton
+            expand={false}
+            duration={4000}
+          />
         </ErrorBoundary>
       </body>
     </html>

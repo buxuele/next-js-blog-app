@@ -108,11 +108,8 @@ export const cacheKeys = {
   posts: (page: number = 1, limit: number = 10) => `posts:${page}:${limit}`,
   post: (slug: string) => `post:${slug}`,
   categories: () => 'categories:all',
-  tags: () => 'tags:all',
   postsByCategory: (categorySlug: string, page: number = 1) =>
     `posts:category:${categorySlug}:${page}`,
-  postsByTag: (tagSlug: string, page: number = 1) =>
-    `posts:tag:${tagSlug}:${page}`,
 };
 
 // 缓存失效工具
@@ -140,17 +137,6 @@ export const cacheInvalidation = {
     const stats = cache.getStats();
     stats.keys.forEach((key) => {
       if (key.startsWith('posts:category:')) {
-        cache.delete(key);
-      }
-    });
-  },
-
-  // 失效标签相关缓存
-  invalidateTags: () => {
-    cache.delete(cacheKeys.tags());
-    const stats = cache.getStats();
-    stats.keys.forEach((key) => {
-      if (key.startsWith('posts:tag:')) {
         cache.delete(key);
       }
     });

@@ -17,17 +17,15 @@ async function getStats() {
         publishedPosts: 0,
         draftPosts: 0,
         totalCategories: 0,
-        totalTags: 0,
       };
     }
 
-    const [totalPosts, publishedPosts, draftPosts, totalCategories, totalTags] =
+    const [totalPosts, publishedPosts, draftPosts, totalCategories] =
       await Promise.all([
         prisma.post.count(),
         prisma.post.count({ where: { published: true } }),
         prisma.post.count({ where: { published: false } }),
         prisma.category.count(),
-        prisma.tag.count(),
       ]);
 
     return {
@@ -35,7 +33,6 @@ async function getStats() {
       publishedPosts,
       draftPosts,
       totalCategories,
-      totalTags,
     };
   } catch (error) {
     console.error('Error fetching stats:', error);
@@ -44,7 +41,6 @@ async function getStats() {
       publishedPosts: 0,
       draftPosts: 0,
       totalCategories: 0,
-      totalTags: 0,
     };
   }
 }
@@ -85,13 +81,6 @@ export default async function AdminPage() {
           <h3 className="text-lg font-semibold mb-2">分类统计</h3>
           <p>
             总分类数: <span className="font-bold">{stats.totalCategories}</span>
-          </p>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-2">标签统计</h3>
-          <p>
-            总标签数: <span className="font-bold">{stats.totalTags}</span>
           </p>
         </div>
       </div>

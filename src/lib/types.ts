@@ -1,3 +1,4 @@
+import * as React from 'react';
 // 从 Prisma 客户端导入生成的类型
 import { Article, TodoItem } from '@prisma/client';
 
@@ -113,7 +114,7 @@ export interface ContextMenuPosition {
 
 export interface ContextMenuItem {
   label: string;
-  icon?: string;
+  icon?: React.ReactNode;
   action: () => void;
   disabled?: boolean;
   separator?: boolean;

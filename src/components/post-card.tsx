@@ -12,12 +12,6 @@ interface PostCardProps {
       name: string;
       slug: string;
     } | null;
-    tags: {
-      tag: {
-        name: string;
-        slug: string;
-      };
-    }[];
   };
 }
 
@@ -63,19 +57,6 @@ export function PostCard({ post }: PostCardProps) {
         <p className="text-gray-600 mb-4 leading-relaxed line-clamp-3">
           {post.excerpt}
         </p>
-      )}
-
-      {post.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
-          {post.tags.map(({ tag }) => (
-            <span
-              key={tag.slug}
-              className="bg-gray-50 text-gray-600 px-2 py-1 rounded-md text-xs font-medium hover:bg-gray-100 transition-colors"
-            >
-              #{tag.name}
-            </span>
-          ))}
-        </div>
       )}
     </article>
   );

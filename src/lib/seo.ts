@@ -125,7 +125,6 @@ export function generateArticleMetadata(post: {
   publishedAt?: Date | null;
   updatedAt: Date;
   category?: { name: string } | null;
-  tags: Array<{ tag: { name: string } }>;
 }) {
   // Generate description from excerpt or content
   const description =
@@ -134,7 +133,6 @@ export function generateArticleMetadata(post: {
 
   // Extract keywords from content (simple implementation)
   const contentKeywords = extractKeywords(post.content);
-  const tagNames = post.tags.map(({ tag }) => tag.name);
 
   return generateMetadata({
     title: post.title,
@@ -145,7 +143,6 @@ export function generateArticleMetadata(post: {
     publishedTime: post.publishedAt?.toISOString(),
     modifiedTime: post.updatedAt.toISOString(),
     category: post.category?.name,
-    tags: tagNames,
   });
 }
 
@@ -193,7 +190,6 @@ export function generateArticleJsonLd(post: {
   publishedAt?: Date | null;
   updatedAt: Date;
   category?: { name: string } | null;
-  tags: Array<{ tag: { name: string } }>;
 }) {
   const description =
     post.excerpt ||
@@ -223,7 +219,6 @@ export function generateArticleJsonLd(post: {
       '@type': 'WebPage',
       '@id': `${DEFAULT_CONFIG.siteUrl}/posts/${post.slug}`,
     },
-    keywords: post.tags.map(({ tag }) => tag.name).join(', '),
     articleSection: post.category?.name,
   };
 }

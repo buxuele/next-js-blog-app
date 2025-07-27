@@ -1,22 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { generateSlug } from "@/lib/utils";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { generateSlug } from '@/lib/utils';
 
 // GET /api/posts - 获取文章列表
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const published = searchParams.get("published");
-    const category = searchParams.get("category");
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const published = searchParams.get('published');
+    const category = searchParams.get('category');
 
     const skip = (page - 1) * limit;
 
     const where: any = {};
 
     if (published !== null) {
-      where.published = published === "true";
+      where.published = published === 'true';
     }
 
     if (category) {
@@ -30,14 +30,9 @@ export async function GET(request: NextRequest) {
         where,
         include: {
           category: true,
-          tags: {
-            include: {
-              tag: true,
-            },
-          },
         },
         orderBy: {
-          createdAt: "desc",
+          createdAt: 'desc',
         },
         skip,
         take: limit,
@@ -55,8 +50,8 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching posts:", error);
-    return NextResponse.json({ error: "获取文章列表失败" }, { status: 500 });
+    console.error('Error fetching posts:', error);
+    return NextResponse.json({ error: '获取文章列表失败' }, { status: 500 });
   }
 }
 
@@ -64,11 +59,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, content, excerpt, published, categoryId, tagIds } = body;
+    const { title, content, excerpt, published, categoryId } = body;
 
     if (!title || !content) {
       return NextResponse.json(
-        { error: "标题和内容不能为空" },
+        { error: '标题和内容不能为空' },
         { status: 400 }
       );
     }
@@ -82,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     if (existingPost) {
       return NextResponse.json(
-        { error: "文章标题已存在，请使用不同的标题" },
+        { error: '文章标题已存在，请使用不同的标题' },
         { status: 400 }
       );
     }
@@ -96,27 +91,15 @@ export async function POST(request: NextRequest) {
         published: published || false,
         publishedAt: published ? new Date() : null,
         categoryId: categoryId || null,
-        tags: tagIds
-          ? {
-              create: tagIds.map((tagId: string) => ({
-                tagId,
-              })),
-            }
-          : undefined,
       },
       include: {
         category: true,
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
       },
     });
 
     return NextResponse.json(post, { status: 201 });
   } catch (error) {
-    console.error("Error creating post:", error);
-    return NextResponse.json({ error: "创建文章失败" }, { status: 500 });
+    console.error('Error creating post:', error);
+    return NextResponse.json({ error: '创建文章失败' }, { status: 500 });
   }
 }

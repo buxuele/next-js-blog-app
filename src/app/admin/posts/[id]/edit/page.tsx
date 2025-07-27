@@ -6,13 +6,6 @@ async function getPost(id: string) {
   try {
     const post = await prisma.post.findUnique({
       where: { id },
-      include: {
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-      },
     });
     return post;
   } catch (error) {
@@ -46,10 +39,6 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
           initialData={{
             title: post.title,
             content: post.content,
-            excerpt: post.excerpt || '',
-            published: post.published,
-            categoryId: post.categoryId,
-            tags: post.tags,
           }}
         />
       </div>

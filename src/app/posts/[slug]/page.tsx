@@ -170,18 +170,7 @@ export default async function PostPage({ params }: PostPageProps) {
                   {post.title}
                 </h1>
 
-                {post.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
-                    {post.tags.map(({ tag }) => (
-                      <span
-                        key={tag.slug}
-                        className="bg-gray-50 text-gray-600 px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors"
-                      >
-                        #{tag.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {/* Tags not implemented yet */}
               </header>
 
               {/* Article Content */}

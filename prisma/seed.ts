@@ -24,33 +24,7 @@ async function main() {
     },
   });
 
-  // 创建标签
-  const reactTag = await prisma.tag.upsert({
-    where: { slug: 'react' },
-    update: {},
-    create: {
-      name: 'React',
-      slug: 'react',
-    },
-  });
-
-  const nextjsTag = await prisma.tag.upsert({
-    where: { slug: 'nextjs' },
-    update: {},
-    create: {
-      name: 'Next.js',
-      slug: 'nextjs',
-    },
-  });
-
-  const typescriptTag = await prisma.tag.upsert({
-    where: { slug: 'typescript' },
-    update: {},
-    create: {
-      name: 'TypeScript',
-      slug: 'typescript',
-    },
-  });
+  // 标签功能暂未实现，先注释掉
 
   // 创建示例文章
   const post1 = await prisma.post.upsert({
@@ -80,9 +54,6 @@ async function main() {
       published: true,
       publishedAt: new Date(),
       categoryId: techCategory.id,
-      tags: {
-        create: [{ tagId: reactTag.id }, { tagId: nextjsTag.id }],
-      },
     },
   });
 
@@ -115,9 +86,6 @@ Next.js 15 是一个重要的版本更新，值得升级体验。`,
       published: true,
       publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1天前
       categoryId: techCategory.id,
-      tags: {
-        create: [{ tagId: nextjsTag.id }, { tagId: typescriptTag.id }],
-      },
     },
   });
 
@@ -274,9 +242,6 @@ Next.js 15 是一个重要的版本更新，值得升级体验。`,
   console.log({
     techCategory,
     lifeCategory,
-    reactTag,
-    nextjsTag,
-    typescriptTag,
     post1,
     post2,
     draftPost,

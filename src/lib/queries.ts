@@ -19,17 +19,6 @@ export const getPostsWithCache = withCache(
               slug: true,
             },
           },
-          tags: {
-            include: {
-              tag: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                },
-              },
-            },
-          },
         },
         orderBy: {
           publishedAt: 'desc',
@@ -74,17 +63,6 @@ export const getPostBySlugWithCache = withCache(
             slug: true,
           },
         },
-        tags: {
-          include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-          },
-        },
       },
     });
   },
@@ -120,35 +98,6 @@ export const getCategoriesWithCache = withCache(
   900 // 15分钟缓存
 );
 
-// 优化的标签查询
-export const getTagsWithCache = withCache(
-  async () => {
-    return await prisma.tag.findMany({
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        _count: {
-          select: {
-            posts: {
-              where: {
-                post: {
-                  published: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        name: 'asc',
-      },
-    });
-  },
-  cacheKeys.tags,
-  900 // 15分钟缓存
-);
-
 // 按分类获取文章
 export const getPostsByCategoryWithCache = withCache(
   async (categorySlug: string, page: number = 1, limit: number = 10) => {
@@ -168,17 +117,6 @@ export const getPostsByCategoryWithCache = withCache(
               id: true,
               name: true,
               slug: true,
-            },
-          },
-          tags: {
-            include: {
-              tag: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                },
-              },
             },
           },
         },
@@ -212,118 +150,27 @@ export const getPostsByCategoryWithCache = withCache(
   300 // 5分钟缓存
 );
 
-// 按标签获取文章
-export const getPostsByTagWithCache = withCache(
-  async (tagSlug: string, page: number = 1, limit: number = 10) => {
-    const skip = (page - 1) * limit;
-
-    const [posts, total] = await Promise.all([
-      prisma.post.findMany({
-        where: {
-          published: true,
-          tags: {
-            some: {
-              tag: {
-                slug: tagSlug,
-              },
-            },
-          },
-        },
-        include: {
-          category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-          tags: {
-            include: {
-              tag: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: {
-          publishedAt: 'desc',
-        },
-        skip,
-        take: limit,
-      }),
-      prisma.post.count({
-        where: {
-          published: true,
-          tags: {
-            some: {
-              tag: {
-                slug: tagSlug,
-              },
-            },
-          },
-        },
-      }),
-    ]);
-
-    return {
-      posts,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      hasNext: page * limit < total,
-      hasPrev: page > 1,
-    };
-  },
-  cacheKeys.postsByTag,
-  300 // 5分钟缓存
-);
-
-// 获取相关文章
+// 获取相关文章（基于分类）
 export const getRelatedPosts = withCache(
   async (postId: string, limit: number = 5) => {
-    // 获取当前文章的分类和标签
+    // 获取当前文章的分类
     const currentPost = await prisma.post.findUnique({
       where: { id: postId },
       include: {
         category: true,
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
       },
     });
 
     if (!currentPost) return [];
 
-    // 查找相关文章（同分类或有共同标签）
+    // 查找相关文章（同分类）
     const relatedPosts = await prisma.post.findMany({
       where: {
         published: true,
         id: {
           not: postId,
         },
-        OR: [
-          // 同分类
-          {
-            categoryId: currentPost.categoryId,
-          },
-          // 有共同标签
-          {
-            tags: {
-              some: {
-                tagId: {
-                  in: currentPost.tags.map(({ tag }) => tag.id),
-                },
-              },
-            },
-          },
-        ],
+        categoryId: currentPost.categoryId,
       },
       include: {
         category: {
@@ -331,17 +178,6 @@ export const getRelatedPosts = withCache(
             id: true,
             name: true,
             slug: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
           },
         },
       },
@@ -370,17 +206,6 @@ export const getPopularPosts = withCache(
             id: true,
             name: true,
             slug: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
           },
         },
       },

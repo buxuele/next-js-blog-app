@@ -53,13 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     });
 
-    // Get all tags
-    const tags = await prisma.tag.findMany({
-      select: {
-        slug: true,
-        updatedAt: true,
-      },
-    });
+    // Tags not implemented yet
 
     // Generate post URLs
     const postUrls = posts.map((post) => ({
@@ -77,15 +71,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-    // Generate tag URLs (if you have tag pages)
-    const tagUrls = tags.map((tag) => ({
-      url: `${baseUrl}/tags/${tag.slug}`,
-      lastModified: tag.updatedAt,
-      changeFrequency: 'weekly' as const,
-      priority: 0.5,
-    }));
+    // Tag URLs not implemented yet
 
-    return [...staticPages, ...postUrls, ...categoryUrls, ...tagUrls];
+    return [...staticPages, ...postUrls, ...categoryUrls];
   } catch (error) {
     console.error('Error generating sitemap:', error);
     return staticPages;

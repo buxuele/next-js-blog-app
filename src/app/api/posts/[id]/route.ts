@@ -13,11 +13,6 @@ export async function GET(
       where: { id },
       include: {
         category: true,
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
       },
     });
 
@@ -40,7 +35,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { title, content, excerpt, published, categoryId, tagIds } = body;
+    const { title, content, excerpt, published, categoryId } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -73,11 +68,6 @@ export async function PUT(
       }
     }
 
-    // 删除现有的标签关联
-    await prisma.postTag.deleteMany({
-      where: { postId: id },
-    });
-
     const post = await prisma.post.update({
       where: { id },
       data: {
@@ -91,21 +81,9 @@ export async function PUT(
             ? new Date()
             : existingPost.publishedAt,
         categoryId: categoryId || null,
-        tags: tagIds
-          ? {
-              create: tagIds.map((tagId: string) => ({
-                tagId,
-              })),
-            }
-          : undefined,
       },
       include: {
         category: true,
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
       },
     });
 
